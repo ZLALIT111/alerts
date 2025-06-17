@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>API סטטי - התראות לפי יישוב</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2em;
+      background: #f9f9f9;
+      direction: rtl;
+    }
+    pre {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1em;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>API סטטי - תוצאות</h2>
+  <pre id="result">טוען נתונים...</pre>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const city = params.get('city');
+    const output = document.getElementById('result');
+
+    if (!city) {
+      output.textContent = "⚠️ נא לציין יישוב בפרמטר city בכתובת ה-URL (למשל ?city=צפת)";
+    } else {
+      fetch('https://www.oref.org.il/warningMessages/alert/History/AlertsHistory.json')
+        .then(res => res.json())
+        .then(data => {
+          const results = data.filter(alert =>
+            alert.data.includes(city)
+          );
+          if (results.length === 0) {
+            output.textContent = `לא נמצאו התראות עבור היישוב "${city}".`;
+            return;
+          }
+
+          output.textContent = results.map(alert =>
+            `ביישוב ${alert.data} התקבלה התראה בתאריך ${alert.alertDate}, ${alert.title}, סוג התראה ${alert.category}.`
+          ).join('\n');
+        })
+        .catch(error => {
+          output.textContent = "❌ שגיאה בטעינת הנתונים: " + error;
+        });
+    }
+  </script>
+</body>
+</html>
